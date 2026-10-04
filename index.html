@@ -692,6 +692,7 @@ async function load(){
   try { initMap(); } catch (e) { console.warn("Map could not load", e); $("map").style.display = "none"; }
   fetchWikidata();
   handleHash();
+  fetchTheyyamLinks();
 }
 const sortEntries = es => (es||[]).slice().sort((a,b)=>(a.time||"").localeCompare(b.time||""));
 
@@ -798,7 +799,7 @@ $("todayBtn").onclick = () => { view = new Date(); view.setDate(1); selected = t
 
 function entriesHTML(entries){
   return `<ul>${entries.length ? entries.map(e=>`<li><span class="t">${esc(fmtTime(e.time))}</span>
-      <span>${e.wikidata?`<a href="https://www.wikidata.org/wiki/${esc(e.wikidata)}" target="_blank" rel="noopener">${esc(e.theyyam||e.wikidata)}</a>`:esc(e.theyyam||t("theyyam_one"))}
+      <span>${e.wikidata?`<a href="${esc(theyyamLink(e.wikidata).url)}" target="_blank" rel="noopener" title="${esc(theyyamLink(e.wikidata).label)}">${esc(e.theyyam||e.wikidata)}</a>`:esc(e.theyyam||t("theyyam_one"))}
       ${e.ritual_type?`<div class="r">${esc(I18N.ritual(e.ritual_type))}</div>`:""}</span></li>`).join("")
       : `<li><span class="t">—</span><span class="r">${esc(t("no_details"))}</span></li>`}</ul>`;
 }
@@ -879,6 +880,32 @@ async function fetchWikidata(){
       });
     }catch(err){ console.warn("Wikidata fetch failed", err); }
   }
+}
+
+/* ---------- Theyyam links: Malayalam Wikipedia → English Wikipedia → Wikidata ---------- */
+const THEYYAM_LINKS = {};   // QID -> {url, label}
+function theyyamLink(q){
+  const l = THEYYAM_LINKS[q];
+  if (l) return { url: l.url, label: t(l.kind === "ml" ? "ml_wiki" : "en_wiki") };
+  return { url: `https://www.wikidata.org/wiki/${q}`, label: `Wikidata ${q}` };
+}
+async function fetchTheyyamLinks(){
+  const ids = [...new Set(KAVUS.flatMap(k => k.calendar.flatMap(d => (d.entries||[]).map(e => e.wikidata))))]
+    .filter(q => /^Q\d+$/.test(q || ""));
+  for (let i = 0; i < ids.length; i += 50){
+    try{
+      const url = `https://www.wikidata.org/w/api.php?action=wbgetentities&ids=${ids.slice(i,i+50).join("|")}&props=sitelinks&sitefilter=mlwiki|enwiki&format=json&origin=*`;
+      const ents = (await (await fetch(url)).json()).entities || {};
+      for (const [q, e] of Object.entries(ents)){
+        const ml = e.sitelinks?.mlwiki?.title, en = e.sitelinks?.enwiki?.title;
+        if (ml) THEYYAM_LINKS[q] = { url: `https://ml.wikipedia.org/wiki/${encodeURIComponent(ml.replace(/ /g,"_"))}`, kind: "ml" };
+        else if (en) THEYYAM_LINKS[q] = { url: `https://en.wikipedia.org/wiki/${encodeURIComponent(en.replace(/ /g,"_"))}`, kind: "en" };
+      }
+    }catch(err){ console.warn("Theyyam link lookup failed", err); }
+  }
+  // redraw lists that show Theyyam names with the better links
+  renderDayList(selected);
+  if (modal.open && openId) openKavu(openId, true);
 }
 
 /* ---------- detail modal ---------- */
