@@ -1,8 +1,52 @@
 {
   "type": "FeatureCollection",
   "name": "Theyyam Calendar Project",
-  "generated_at": "2026-10-04T14:56:07.529Z",
+  "generated_at": "2026-10-04T15:52:17.789Z",
   "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          75.32016908557232,
+          11.978236511856663
+        ]
+      },
+      "properties": {
+        "name_en": "Kannapuram Pookkotti Tharavadu Vayanattukulavan Kavu",
+        "name_ml": "കണ്ണപുരം പൂക്കോട്ടി തറവാട് വയനാട്ടുകുലവന്‍ ക്ഷേത്രം",
+        "other_names": [],
+        "wikidata": "Q141639951",
+        "coordinates": {
+          "lat": 11.978236511856663,
+          "lon": 75.32016908557232
+        },
+        "place": "Kannapuram",
+        "note": "കളിയാട്ടമഹോത്സവം. ഫോട്ടോ-വീഡിയോഗ്രാഫി വിലക്കിയിട്ടുണ്ട്.",
+        "image": "Theyyam20260003.jpeg",
+        "calendar": [
+          {
+            "date": "2026-10-29",
+            "entries": [
+              {
+                "time": "04:00",
+                "theyyam": "കണ്ടനാർകേളൻ",
+                "ritual_type": "Theyyam / Purappad (പുറപ്പാട്)",
+                "wikidata": "Q20575389"
+              },
+              {
+                "time": "06:00",
+                "theyyam": "തൊണ്ടച്ചൻ ദൈവം",
+                "ritual_type": "Theyyam / Purappad (പുറപ്പാട്)",
+                "wikidata": null
+              }
+            ]
+          }
+        ],
+        "submitted_at": "2026-10-04T15:51:36.280Z",
+        "id": "Q141639951"
+      }
+    },
     {
       "type": "Feature",
       "geometry": {
