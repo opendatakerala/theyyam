@@ -1,8 +1,56 @@
 {
   "type": "FeatureCollection",
   "name": "Theyyam Calendar Project",
-  "generated_at": "2026-10-04T15:52:17.789Z",
+  "generated_at": "2026-10-04T17:26:53.237Z",
   "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          75.49857410295503,
+          12.071959416416632
+        ]
+      },
+      "properties": {
+        "name_en": "Nidiyenga Melalikkavu",
+        "name_ml": "നിടിയേങ്ങ മേലാളിക്കാവ്",
+        "other_names": [
+          "Nidiyenga Melalikavu",
+          "Sree Nidiyenga Melalikkavu",
+          "ശ്രീ നിടിയേങ്ങ മേലാളിക്കാവ്"
+        ],
+        "wikidata": "Q141640358",
+        "coordinates": {
+          "lat": 12.071959416416632,
+          "lon": 75.49857410295503
+        },
+        "place": "Chempanthotty",
+        "note": null,
+        "image": "Theyyam20260004.jpg",
+        "calendar": [
+          {
+            "date": "2026-10-12",
+            "entries": [
+              {
+                "time": "14:00",
+                "theyyam": "ദൈവത്താർ",
+                "ritual_type": "Theyyam / Purappad (പുറപ്പാട്)",
+                "wikidata": "Q31697392"
+              },
+              {
+                "time": "15:00",
+                "theyyam": "ശംഭോങ്ങ്യാർ ഈശ്വരി",
+                "ritual_type": "Theyyam / Purappad (പുറപ്പാട്)",
+                "wikidata": null
+              }
+            ]
+          }
+        ],
+        "submitted_at": "2026-10-04T17:25:30.775Z",
+        "id": "Q141640358"
+      }
+    },
     {
       "type": "Feature",
       "geometry": {
