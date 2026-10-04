@@ -1,0 +1,938 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Theyyam Calendar Project | തെയ്യം കലണ്ടർ</title>
+<meta name="description" content="An open data initiative to map Theyyam, the socio-religious ritual and integral cultural symbol of North Malabar. By Sahya Digital Conservation Foundation.">
+<meta property="og:title" content="Theyyam Calendar Project">
+<meta property="og:description" content="An open data initiative to map Theyyam, the socio-religious ritual and integral cultural symbol of North Malabar.">
+<meta property="og:image" content="assets/logo.png">
+<link rel="icon" href="assets/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anek+Malayalam:wdth,wght@75..125,300..800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<style>
+:root{
+  --kumkum:#A3141C; --kumkum-dark:#6E0B10; --manjal:#E9A80E; --ola:#C9B26A;
+  --ari:#FFFBF2; --ink:#1E1512; --muted:#6B5C55; --line:#E4D8C8; --soft:#FFF4DA;
+  font-family:"Anek Malayalam","Noto Sans Malayalam","Nirmala UI",system-ui,sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:70px}
+body{margin:0;background:var(--ari);color:var(--ink);font-size:17px;line-height:1.55}
+a{color:var(--kumkum)}
+button{font:inherit;cursor:pointer}
+button:focus-visible,a:focus-visible,input:focus-visible{outline:3px solid var(--manjal);outline-offset:2px}
+
+/* ---------- Header ---------- */
+header{background:var(--kumkum);color:#fff;position:relative;
+  padding:calc(24px + env(safe-area-inset-top,0px)) 20px 52px}
+header::after{content:"";position:absolute;left:0;right:0;bottom:-18px;height:20px;z-index:2;
+  background:linear-gradient(135deg,var(--manjal) 50%,transparent 50%) 0 0/20px 20px repeat-x,
+             linear-gradient(225deg,var(--manjal) 50%,transparent 50%) 0 0/20px 20px repeat-x}
+.wrap{max-width:1100px;margin:0 auto}
+.brand{display:flex;gap:18px;align-items:center}
+.brand img{width:96px;height:96px;flex:none;background:var(--ari);border-radius:50%;
+  border:3px solid var(--manjal);object-fit:contain;padding:4px}
+h1{margin:0;font-stretch:118%;font-weight:780;font-size:clamp(1.7rem,5.5vw,2.8rem);line-height:1.05}
+.tag{margin:.5rem 0 0;max-width:60ch;line-height:1.4}
+.tag-ml{margin:.15rem 0 0;color:#FFE7B3;font-size:.93rem;max-width:60ch}
+.org{margin:.5rem 0 0;color:var(--manjal);font-weight:600;font-size:.9rem}
+
+.hero-search{margin-top:22px;display:flex;gap:8px;max-width:640px}
+.hero-search input{flex:1;font:inherit;font-size:16px;border:0;border-radius:10px;padding:13px 16px;min-height:50px}
+.hero-search button{border:0;border-radius:10px;background:var(--manjal);color:var(--ink);font-weight:700;padding:0 20px}
+
+/* ---------- Nav ---------- */
+nav{position:sticky;top:0;z-index:1000;background:var(--ari);border-bottom:1px solid var(--line);
+  padding-top:calc(22px + env(safe-area-inset-top,0px));margin-top:-4px}
+nav .wrap{display:flex;gap:4px;overflow-x:auto;padding:0 12px}
+nav a{text-decoration:none;color:var(--ink);font-weight:600;padding:12px 14px;white-space:nowrap;border-bottom:3px solid transparent}
+nav a:hover{color:var(--kumkum)}
+nav a.active{border-color:var(--kumkum);color:var(--kumkum)}
+nav a.cta{margin-left:auto;color:var(--kumkum)}
+
+main{padding:0 16px 40px}
+section{padding:36px 0 8px}
+h2{font-stretch:112%;font-size:1.6rem;margin:0 0 4px;color:var(--kumkum-dark)}
+h2 small{font-size:1rem;font-weight:400;color:var(--muted);font-stretch:100%;margin-left:6px}
+.sub{color:var(--muted);margin:0 0 18px}
+.sample-note{background:var(--soft);border:1px solid #F0D98E;color:#7A5600;border-radius:8px;
+  padding:10px 14px;font-size:.92rem;margin-top:22px;display:none}
+
+/* ---------- Search ---------- */
+.stats{display:flex;flex-wrap:wrap;gap:8px 22px;color:var(--muted);font-size:.95rem;margin-bottom:14px}
+.stats b{color:var(--ink);font-size:1.15rem}
+.filters{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
+.filters input,.filters select{font:inherit;font-size:16px;border:1.5px solid var(--line);border-radius:8px;
+  padding:9px 12px;background:#fff;min-height:44px}
+.filters input[type=search]{flex:1 1 260px}
+.results{display:grid;gap:14px}
+@media(min-width:760px){.results{grid-template-columns:1fr 1fr}}
+.card{background:#fff;border:1px solid var(--line);border-left:4px solid var(--kumkum);border-radius:10px;padding:14px 16px}
+.card h3{margin:0;font-size:1.12rem;line-height:1.3}
+.card .ml{color:var(--muted);font-size:.98rem}
+.card .place{font-size:.9rem;color:var(--muted);margin-top:4px}
+.card .note{margin:8px 0 0;font-size:.93rem;font-style:italic;color:#4A3B35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.m-note{margin:12px 0 0;padding:10px 14px;background:var(--soft);border-left:3px solid var(--manjal);border-radius:0 8px 8px 0;font-style:italic}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.chip{font-size:.82rem;background:var(--soft);border:1px solid #F0D98E;border-radius:99px;padding:2px 10px}
+.chip.date{background:#fff;border-color:var(--kumkum);color:var(--kumkum);cursor:pointer;font-weight:600}
+.chip.date:hover{background:var(--kumkum);color:#fff}
+.card-actions{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+.btn{border:1.5px solid var(--kumkum);background:#fff;color:var(--kumkum);border-radius:8px;padding:6px 12px;font-weight:600;font-size:.9rem;min-height:38px}
+.btn:hover{background:#FFF1EF}
+.btn.solid{background:var(--kumkum);color:#fff}
+.empty{color:var(--muted);padding:20px;text-align:center;border:1px dashed var(--line);border-radius:10px}
+mark{background:#FFE08A;color:inherit;padding:0 1px}
+
+/* ---------- Calendar ---------- */
+.cal-layout{display:grid;gap:20px}
+@media(min-width:900px){.cal-layout{grid-template-columns:minmax(0,1.1fr) minmax(0,1fr)}}
+.cal{background:#fff;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.cal-head{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--kumkum);color:#fff}
+.cal-head h3{margin:0;font-size:1.15rem;font-stretch:110%;flex:1;text-align:center;line-height:1.2}
+.cal-head>div{display:flex;gap:6px}
+.cal-head{gap:8px}
+@media(max-width:480px){.cal-head h3{font-size:1rem}.cal-head h3 span{display:block}}
+.cal-head button{background:transparent;border:1.5px solid rgba(255,255,255,.5);color:#fff;border-radius:8px;min-width:42px;min-height:40px;font-size:1.1rem}
+.cal-head .today{font-size:.85rem;padding:0 10px;margin-right:6px}
+.dow,.days{display:grid;grid-template-columns:repeat(7,1fr)}
+.dow div{text-align:center;font-size:.78rem;color:var(--muted);padding:8px 0;border-bottom:1px solid var(--line)}
+.day{aspect-ratio:1/1;border:0;border-right:1px solid var(--line);border-bottom:1px solid var(--line);background:#fff;
+  display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding-top:6px;font-size:.95rem;position:relative;min-height:44px}
+.days .day:nth-child(7n){border-right:0}
+.day.out{color:#C8BDB5;background:#FCFAF6}
+.day.has{background:#FFF4DA;font-weight:700}
+.day.has::after{content:attr(data-n);position:absolute;bottom:5px;font-size:.7rem;background:var(--kumkum);color:#fff;
+  border-radius:99px;min-width:18px;padding:0 5px;line-height:18px}
+.day.is-today{box-shadow:inset 0 0 0 2px var(--manjal)}
+.day.sel{background:var(--kumkum);color:#fff}
+.day.sel::after{background:var(--manjal);color:var(--ink)}
+.day:hover{background:#FFEFC8}
+.day.sel:hover{background:var(--kumkum-dark)}
+.daylist h3{margin:0 0 10px;font-size:1.2rem}
+.daylist .grp{background:#fff;border:1px solid var(--line);border-radius:10px;margin-bottom:12px;overflow:hidden}
+.grp-h{padding:10px 14px;background:var(--soft);display:flex;justify-content:space-between;gap:10px;align-items:center}
+.grp-h b{display:block;line-height:1.3}
+.grp-h span{font-size:.88rem;color:var(--muted)}
+.grp ul{list-style:none;margin:0;padding:4px 14px 10px}
+.grp li{display:grid;grid-template-columns:minmax(88px,max-content) 1fr;gap:8px;padding:7px 0;border-bottom:1px dashed var(--line)}
+.grp li:last-child{border-bottom:0}
+.grp .t{font-weight:700;color:var(--kumkum);white-space:nowrap}
+.grp .r{font-size:.85rem;color:var(--muted)}
+.upnext-date{font-weight:700;color:var(--kumkum-dark);margin:16px 0 6px;font-size:1rem}
+
+/* ---------- Map ---------- */
+#map{height:min(70vh,620px);border-radius:12px;border:1px solid var(--line);z-index:1}
+.leaflet-popup-content{font-family:inherit;margin:12px 14px;min-width:200px}
+.pop h4{margin:0 0 2px;font-size:1rem}
+.pop .ml{color:var(--muted)}
+.pop img{width:100%;height:120px;object-fit:cover;border-radius:6px;margin:6px 0;display:block}
+.pop .d{font-size:.85rem;margin-top:6px}
+.pin{background:var(--kumkum);border:3px solid var(--manjal);border-radius:50% 50% 50% 0;transform:rotate(-45deg);
+  width:26px;height:26px;box-shadow:0 2px 4px rgba(0,0,0,.35)}
+
+/* ---------- Modal ---------- */
+dialog{border:0;border-radius:14px;padding:0;max-width:640px;width:calc(100% - 24px);max-height:88vh;color:var(--ink)}
+dialog::backdrop{background:rgba(30,21,18,.55)}
+.m-img{width:100%;max-height:300px;object-fit:cover;display:block;background:var(--soft)}
+.poster-link{display:block;background:#2A1E1A}
+.m-poster{width:100%;max-height:70vh;object-fit:contain;display:block}
+.card{position:relative}
+.card .thumb{float:right;margin:0 0 8px 12px;width:96px;height:96px;padding:0;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--soft)}
+.card .thumb img{width:100%;height:100%;object-fit:cover;display:block}
+@media(min-width:560px){.card .thumb{width:120px;height:120px}}
+.gthumb{width:56px;height:56px;object-fit:cover;border-radius:6px;border:1px solid var(--line);flex:none}
+.m-body{padding:18px 20px 22px}
+.m-body h3{margin:0;font-size:1.4rem;line-height:1.25}
+.m-close{position:sticky;top:0;float:right;margin:10px 10px -60px 0;box-shadow:0 1px 4px rgba(0,0,0,.25);border:0;background:rgba(255,255,255,.92);border-radius:99px;width:40px;height:40px;font-size:1.3rem;z-index:2}
+.links{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
+.links a{font-size:.88rem;border:1px solid var(--line);border-radius:99px;padding:4px 12px;text-decoration:none;background:#fff}
+.links a:hover{border-color:var(--kumkum)}
+.credit{font-size:.75rem;color:var(--muted);padding:4px 20px 0}
+
+/* ---------- Submit band & footer ---------- */
+.submit-band{margin-top:40px;background:var(--kumkum);color:#fff;border-radius:14px;padding:26px 22px;
+  display:flex;flex-wrap:wrap;gap:16px;align-items:center;justify-content:space-between}
+.submit-band h2{color:#fff;margin:0}
+.submit-band p{margin:4px 0 0;color:#FFE7B3}
+.submit-band a{background:var(--manjal);color:var(--ink);text-decoration:none;font-weight:700;padding:12px 22px;border-radius:10px}
+footer{text-align:center;color:var(--muted);font-size:.85rem;padding:24px 16px calc(32px + env(safe-area-inset-bottom,0px))}
+@media(max-width:560px){.brand img{width:68px;height:68px}header{padding-bottom:46px}}
+
+/* ---------- language switch ---------- */
+header .wrap{position:relative}
+.lang-switch{display:flex;justify-content:flex-end;gap:0;margin:-8px 0 14px}
+.lang-switch button{border:1.5px solid rgba(255,255,255,.55);background:transparent;color:#fff;
+  padding:5px 14px;min-height:36px;font-size:.9rem;font-weight:600}
+.lang-switch button:first-child{border-radius:99px 0 0 99px}
+.lang-switch button:last-child{border-radius:0 99px 99px 0;border-left:0}
+.lang-switch button[aria-pressed="true"]{background:var(--manjal);border-color:var(--manjal);color:var(--ink)}
+html[lang="ml"] h1{font-stretch:105%}
+</style>
+</head>
+<body data-title-key="page_title_index">
+
+<header>
+  <div class="wrap">
+    <div class="lang-switch" role="group" data-i18n-aria="lang_label">
+      <button type="button" data-setlang="en" lang="en">English</button>
+      <button type="button" data-setlang="ml" lang="ml">മലയാളം</button>
+    </div>
+    <div class="brand">
+      <img src="assets/logo.png" alt="Muchilottu Theyyam">
+      <div><h1 data-i18n="site_title">Theyyam Calendar Project</h1></div>
+    </div>
+    <p class="tag" data-i18n="tagline"></p>
+    <p class="org" data-i18n="org"></p>
+    <form class="hero-search" id="heroForm" role="search">
+      <input type="search" id="heroQ" data-i18n-ph="hero_ph" data-i18n-aria="search_btn">
+      <button type="submit" data-i18n="search_btn">Search</button>
+    </form>
+  </div>
+</header>
+
+<nav>
+  <div class="wrap">
+    <a href="#search" data-sec="search" data-i18n="nav_search">Search</a>
+    <a href="#calendar" data-sec="calendar" data-i18n="nav_calendar">Calendar</a>
+    <a href="#map-sec" data-sec="map-sec" data-i18n="nav_map">Map</a>
+    <a href="submit.html" class="cta" data-i18n="nav_add">+ Add a Theyyam Event</a>
+  </div>
+</nav>
+
+<main class="wrap">
+  <div class="sample-note" id="sampleNote" data-i18n="sample_note"></div>
+
+  <section id="search">
+    <h2 data-i18n="sec_search">Search</h2>
+    <div class="stats" id="stats"></div>
+    <div class="filters">
+      <input type="search" id="q" data-i18n-ph="filter_ph" data-i18n-aria="sec_search">
+      <select id="fRitual" data-i18n-aria="all_rituals"><option value="" data-i18n="all_rituals"></option></select>
+      <select id="fMonth" data-i18n-aria="all_months"><option value="" data-i18n="all_months"></option></select>
+    </div>
+    <div class="results" id="results"></div>
+  </section>
+
+  <section id="calendar">
+    <h2 data-i18n="sec_calendar">Calendar</h2>
+    <p class="sub" data-i18n="cal_intro"></p>
+    <div class="cal-layout">
+      <div class="cal">
+        <div class="cal-head">
+          <button id="prevM" data-i18n-aria="prev_month">‹</button>
+          <h3 id="calTitle"></h3>
+          <div><button class="today" id="todayBtn" data-i18n="today">Today</button><button id="nextM" data-i18n-aria="next_month">›</button></div>
+        </div>
+        <div class="dow" id="dow"></div>
+        <div class="days" id="days"></div>
+      </div>
+      <div class="daylist" id="dayList" aria-live="polite"></div>
+    </div>
+  </section>
+
+  <section id="map-sec">
+    <h2 data-i18n="sec_map">Map</h2>
+    <p class="sub" data-i18n="map_intro"></p>
+    <div id="map"></div>
+  </section>
+
+  <div class="submit-band">
+    <div>
+      <h2 data-i18n="band_h"></h2>
+      <p data-i18n="band_p"></p>
+    </div>
+    <a href="submit.html" data-i18n="band_btn">Add a Theyyam Event</a>
+  </div>
+</main>
+
+<footer>
+  <span data-i18n="site_title"></span> · <span data-i18n="org"></span><br>
+  <span data-i18n-html="footer_data"></span>
+</footer>
+
+<dialog id="modal"><button class="m-close" data-i18n-aria="close" onclick="modal.close()">×</button><div id="mContent"></div></dialog>
+
+<script>
+/* =====================================================================
+   Theyyam Calendar Project – English / Malayalam localisation (L10N)
+   ---------------------------------------------------------------------
+   • This block is included in BOTH index.html and submit.html so each page
+     works on its own. When you change wording, change it in both files.
+   • In HTML:  data-i18n="key"        → text
+               data-i18n-html="key"   → HTML (links etc.)
+               data-i18n-ph="key"     → placeholder
+               data-i18n-aria="key"   → aria-label
+   • In JS:    I18N.t("key", {var: value})
+   • Language order of choice: ?lang=ml|en in the URL → the visitor's last
+     choice → browser language → DEFAULT_LANG.
+   ===================================================================== */
+(function () {
+  const DEFAULT_LANG = "en";
+  const STORE_KEY = "theyyam-calendar-lang";
+
+  const STR = {
+    en: {
+      /* ---------- shared ---------- */
+      site_title: "Theyyam Calendar Project",
+      tagline: "An open data initiative to map Theyyam, the socio-religious ritual and integral cultural symbol of North Malabar.",
+      org: "Sahya Digital Conservation Foundation",
+      lang_label: "Language",
+
+      /* ---------- index: header & nav ---------- */
+      page_title_index: "Theyyam Calendar Project",
+      hero_ph: "Search kavu, Theyyam or place…",
+      search_btn: "Search",
+      nav_search: "Search",
+      nav_calendar: "Calendar",
+      nav_map: "Map",
+      nav_add: "+ Add a Theyyam Event",
+      sample_note: "The website is showing sample data. Replace data/theyyam.geojson with real submissions.",
+      load_error: "Could not load the data file. Open the site through a web server (not by double-clicking the file), or check that data/theyyam.geojson exists.",
+
+      /* ---------- index: search ---------- */
+      sec_search: "Search",
+      filter_ph: "Kavu, Theyyam, place, ritual…",
+      all_rituals: "All rituals",
+      all_months: "All months",
+      kavu_one: "kavu", kavu_many: "kavus",
+      theyyam_one: "Theyyam", theyyam_many: "Theyyams",
+      date_one: "date", date_many: "dates",
+      upcoming: "upcoming",
+      no_match: "No kavu matches “{q}”. Try a different spelling, or <a href=\"submit.html\">add a Theyyam event</a>.",
+      no_match_filters: "No kavu matches these filters.",
+      details: "Details",
+      show_on_map: "Show on map",
+      view_poster: "View poster for {name}",
+
+      /* ---------- index: calendar ---------- */
+      sec_calendar: "Calendar",
+      cal_intro: "Choose a date to see which kavus hold Theyyam that day.",
+      today: "Today",
+      today_suffix: " · Today",
+      prev_month: "Previous month",
+      next_month: "Next month",
+      day_aria: "{date}, {n} kavus",
+      no_theyyam_date: "No Theyyam recorded for this date yet.",
+      coming_up: "Coming up",
+      no_upcoming: "No upcoming dates recorded.",
+      no_details: "No details yet",
+
+      /* ---------- index: map ---------- */
+      sec_map: "Map",
+      map_intro: "Every mapped kavu. Tap a marker for its Theyyam dates.",
+      next: "Next",
+      last: "Last",
+
+      /* ---------- index: details ---------- */
+      also_known: "Also known as",
+      poster_label: "Notice / poster",
+      open_full: "Open full size",
+      image_credit: "Image: <a href=\"{url}\" target=\"_blank\" rel=\"noopener\">Wikimedia Commons</a> (see the file page for author and licence)",
+      ml_wiki: "Malayalam Wikipedia",
+      en_wiki: "English Wikipedia",
+      osm: "OpenStreetMap",
+      directions: "Directions",
+      close: "Close",
+
+      /* ---------- index: footer & band ---------- */
+      band_h: "Know of a Theyyam event that's missing?",
+      band_p: "Add your local kavu and its Theyyam dates.",
+      band_btn: "Add a Theyyam Event",
+      footer_data: "Map data © <a href=\"https://www.openstreetmap.org/copyright\" target=\"_blank\" rel=\"noopener\">OpenStreetMap contributors</a> · Linked data from <a href=\"https://www.wikidata.org\" target=\"_blank\" rel=\"noopener\">Wikidata</a>",
+
+      /* ---------- submit page ---------- */
+      page_title_submit: "Add a Theyyam Event – Theyyam Calendar Project",
+      back_link: "‹ Back to search, calendar and map",
+      intro: "Add a Theyyam event: the kavu and its Theyyam dates. Fields marked <span class=\"req\">*</span> are required. Your entry is sent to the project team as a JSON file along with the image.",
+      legend_poster: "Notice / Poster",
+      label_image: "Event notice, poster or photo",
+      tap_choose: "Tap to choose an image",
+      img_types: "JPG, PNG or WebP",
+      err_image: "Choose the event notice, poster or a photo.",
+      label_filename: "File name",
+      hint_filename: "The image will be renamed to this. Spaces become underscores.",
+      rename_preview: "Will be saved as: {f}",
+      err_filename: "Enter a file name.",
+      legend_kavu: "Kavu details",
+      label_kavu_en: "Kavu name (English)",
+      err_kavu_en: "Enter the kavu name in English.",
+      label_kavu_ml: "Kavu name (Malayalam)",
+      err_kavu_ml: "Enter the kavu name in Malayalam.",
+      label_other: "Other names",
+      ph_other: "Separate with commas",
+      label_qid: "Wikidata QID",
+      fetch: "Fetch",
+      hint_fetch: "Fetch fills empty name, location and place fields from Wikidata.",
+      err_qid: "A QID starts with Q followed by numbers.",
+      label_lat: "Latitude",
+      err_lat: "Use a number between -90 and 90.",
+      label_lon: "Longitude",
+      err_lon: "Use a number between -180 and 180.",
+      use_location: "Use my location",
+      locating: "Locating…",
+      label_place: "Place name",
+      label_note: "Note / Tagline",
+      ph_note: "A short line about the kavu or its festival",
+      note_hint: "characters. English or Malayalam.",
+      legend_dates: "Calendar dates",
+      err_dates: "Add at least one date.",
+      add_date: "+ Add another date",
+      label_date: "Calendar date",
+      remove_date: "Remove date",
+      label_time: "Time",
+      label_theyyam: "Theyyam name",
+      label_ritual: "Ritual type",
+      ph_ritual: "Choose or type",
+      remove: "Remove",
+      remove_entry: "Remove this entry",
+      add_entry: "+ Add entry",
+      send: "Send to project team",
+      preview: "Preview JSON",
+      clear: "Clear form",
+      confirm_clear: "Clear all fields?",
+      dl_json: "Download JSON",
+      dl_img: "Download renamed image",
+      share: "Share via email app",
+      st_missing: "Some required fields are missing or incorrect. Check the fields marked in red.",
+      st_sending: "Sending…",
+      st_sent_both: "Sent. The JSON file and image were attached.",
+      st_sent_json: "Sent. The JSON was included in the email text; attach the image using the buttons below.",
+      st_no_geo: "Location is not available in this browser.",
+      st_geo_denied: "Location permission was denied. Enter latitude and longitude manually.",
+      st_fetched: "Filled empty fields from {q}.",
+      st_fetch_fail: "Could not fetch {q}: {e}",
+      st_choose_img: "Choose an image and enter a file name first.",
+      tool_summary: "For maintainers: build the website data file",
+      tool_hint: "Select the JSON files received by email (and the current <code>theyyam.geojson</code> if you want to add to it). This makes a merged <code>theyyam.geojson</code> for the website's <code>data/</code> folder. Put the attached images in the <code>images/</code> folder. Entries for the same kavu are combined.",
+      tool_btn: "Build theyyam.geojson",
+      merge_none: "Choose one or more JSON files first.",
+      merge_built: "Built theyyam.geojson with {k} kavus from {r} records.",
+      merge_noloc: " {n} kavu(s) have no coordinates and will not appear on the map.",
+      merge_skipped: " Skipped (not a submission file): {f}.",
+      footer_submit: "Entries are emailed to the project team at <a href=\"mailto:manoj@sahya.org.in\">manoj@sahya.org.in</a>"
+    },
+
+    ml: {
+      site_title: "തെയ്യം കലണ്ടർ പദ്ധതി",
+      tagline: "വടക്കേ മലബാറിൻ്റെ സാമൂഹിക അനുഷ്ഠാനവും അവിഭാജ്യ സാംസ്കാരിക പ്രതീകവുമായ തെയ്യത്തെ മാപ്പ് ചെയ്യാനുള്ള ഒരു ഓപ്പൺ ഡാറ്റ സംരംഭം.",
+      org: "സഹ്യ ഡിജിറ്റൽ കൺസർവേഷൻ ഫൗണ്ടേഷൻ",
+      lang_label: "ഭാഷ",
+
+      page_title_index: "തെയ്യം കലണ്ടർ പദ്ധതി",
+      hero_ph: "കാവ്, തെയ്യം, സ്ഥലം തിരയുക…",
+      search_btn: "തിരയുക",
+      nav_search: "തിരയൽ",
+      nav_calendar: "കലണ്ടർ",
+      nav_map: "ഭൂപടം",
+      nav_add: "+ തെയ്യം ചേർക്കുക",
+      sample_note: "വെബ്സൈറ്റിൽ ഇപ്പോൾ ഉദാഹരണ ഡാറ്റയാണ്. data/theyyam.geojson യഥാർത്ഥ വിവരങ്ങൾ കൊണ്ട് മാറ്റുക.",
+      load_error: "ഡാറ്റ ഫയൽ ലോഡ് ചെയ്യാനായില്ല. വെബ് സെർവർ വഴി സൈറ്റ് തുറക്കുക (ഫയൽ നേരിട്ട് തുറക്കരുത്), അല്ലെങ്കിൽ data/theyyam.geojson ഉണ്ടോ എന്ന് പരിശോധിക്കുക.",
+
+      sec_search: "തിരയൽ",
+      filter_ph: "കാവ്, തെയ്യം, സ്ഥലം, ചടങ്ങ്…",
+      all_rituals: "എല്ലാ ചടങ്ങുകളും",
+      all_months: "എല്ലാ മാസങ്ങളും",
+      kavu_one: "കാവ്", kavu_many: "കാവുകൾ",
+      theyyam_one: "തെയ്യം", theyyam_many: "തെയ്യങ്ങൾ",
+      date_one: "തീയതി", date_many: "തീയതികൾ",
+      upcoming: "വരാനിരിക്കുന്നവ",
+      no_match: "“{q}” എന്നതിന് ഫലങ്ങളൊന്നുമില്ല. മറ്റൊരു എഴുത്തുരീതി ശ്രമിക്കുക, അല്ലെങ്കിൽ <a href=\"submit.html\">തെയ്യം വിവരം ചേർക്കുക</a>.",
+      no_match_filters: "ഈ തിരഞ്ഞെടുപ്പുകൾക്ക് യോജിക്കുന്ന കാവുകളില്ല.",
+      details: "വിശദാംശങ്ങൾ",
+      show_on_map: "ഭൂപടത്തിൽ കാണുക",
+      view_poster: "{name} – പോസ്റ്റർ കാണുക",
+
+      sec_calendar: "കലണ്ടർ",
+      cal_intro: "ഒരു തീയതി തിരഞ്ഞെടുത്താൽ അന്ന് തെയ്യമുള്ള കാവുകൾ കാണാം.",
+      today: "ഇന്ന്",
+      today_suffix: " · ഇന്ന്",
+      prev_month: "മുൻ മാസം",
+      next_month: "അടുത്ത മാസം",
+      day_aria: "{date}, {n} കാവുകൾ",
+      no_theyyam_date: "ഈ തീയതിയിൽ തെയ്യം രേഖപ്പെടുത്തിയിട്ടില്ല.",
+      coming_up: "വരാനിരിക്കുന്നവ",
+      no_upcoming: "വരാനിരിക്കുന്ന തീയതികളൊന്നും രേഖപ്പെടുത്തിയിട്ടില്ല.",
+      no_details: "വിശദാംശങ്ങൾ ലഭ്യമല്ല",
+
+      sec_map: "ഭൂപടം",
+      map_intro: "ഭൂപടത്തിലുള്ള എല്ലാ കാവുകളും. തെയ്യം തീയതികൾ കാണാൻ അടയാളത്തിൽ തൊടുക.",
+      next: "അടുത്തത്",
+      last: "അവസാനം",
+
+      also_known: "മറ്റ് പേരുകൾ",
+      poster_label: "നോട്ടീസ് / പോസ്റ്റർ",
+      open_full: "പൂർണ്ണ വലുപ്പത്തിൽ തുറക്കുക",
+      image_credit: "ചിത്രം: <a href=\"{url}\" target=\"_blank\" rel=\"noopener\">വിക്കിമീഡിയ കോമൺസ്</a> (രചയിതാവും അനുമതിയും ഫയൽ പേജിൽ)",
+      ml_wiki: "മലയാളം വിക്കിപീഡിയ",
+      en_wiki: "ഇംഗ്ലീഷ് വിക്കിപീഡിയ",
+      osm: "ഓപ്പൺസ്ട്രീറ്റ്മാപ്പ്",
+      directions: "വഴി കാണുക",
+      close: "അടയ്ക്കുക",
+
+      band_h: "ഏതെങ്കിലും തെയ്യം വിവരം വിട്ടുപോയിട്ടുണ്ടോ?",
+      band_p: "നിങ്ങളുടെ നാട്ടിലെ കാവും തെയ്യം തീയതികളും ചേർക്കൂ.",
+      band_btn: "തെയ്യം വിവരം ചേർക്കുക",
+      footer_data: "ഭൂപട ഡാറ്റ © <a href=\"https://www.openstreetmap.org/copyright\" target=\"_blank\" rel=\"noopener\">ഓപ്പൺസ്ട്രീറ്റ്മാപ്പ് സംഭാവകർ</a> · ബന്ധിത ഡാറ്റ <a href=\"https://www.wikidata.org\" target=\"_blank\" rel=\"noopener\">വിക്കിഡാറ്റ</a>യിൽ നിന്ന്",
+
+      page_title_submit: "തെയ്യം വിവരം ചേർക്കുക – തെയ്യം കലണ്ടർ പദ്ധതി",
+      back_link: "‹ തിരയൽ, കലണ്ടർ, ഭൂപടം എന്നിവയിലേക്ക്",
+      intro: "തെയ്യം വിവരം ചേർക്കുക: കാവും തെയ്യം തീയതികളും. <span class=\"req\">*</span> അടയാളമുള്ളവ നിർബന്ധമാണ്. നിങ്ങളുടെ വിവരങ്ങൾ JSON ഫയലായി ചിത്രത്തോടൊപ്പം പദ്ധതി ടീമിന് അയയ്ക്കും.",
+      legend_poster: "നോട്ടീസ് / പോസ്റ്റർ",
+      label_image: "നോട്ടീസ്, പോസ്റ്റർ അല്ലെങ്കിൽ ചിത്രം",
+      tap_choose: "ചിത്രം തിരഞ്ഞെടുക്കാൻ തൊടുക",
+      img_types: "JPG, PNG അല്ലെങ്കിൽ WebP",
+      err_image: "നോട്ടീസോ പോസ്റ്ററോ ചിത്രമോ തിരഞ്ഞെടുക്കുക.",
+      label_filename: "ഫയലിൻ്റെ പേര്",
+      hint_filename: "ചിത്രത്തിന് ഈ പേര് നൽകും. സ്പേസുകൾ അണ്ടർസ്കോർ (_) ആകും.",
+      rename_preview: "ഇങ്ങനെ സേവ് ചെയ്യും: {f}",
+      err_filename: "ഫയലിൻ്റെ പേര് നൽകുക.",
+      legend_kavu: "കാവിൻ്റെ വിവരങ്ങൾ",
+      label_kavu_en: "കാവിൻ്റെ പേര് (ഇംഗ്ലീഷ്)",
+      err_kavu_en: "കാവിൻ്റെ പേര് ഇംഗ്ലീഷിൽ നൽകുക.",
+      label_kavu_ml: "കാവിൻ്റെ പേര് (മലയാളം)",
+      err_kavu_ml: "കാവിൻ്റെ പേര് മലയാളത്തിൽ നൽകുക.",
+      label_other: "മറ്റ് പേരുകൾ",
+      ph_other: "കോമ ഇട്ട് വേർതിരിക്കുക",
+      label_qid: "വിക്കിഡാറ്റ QID",
+      fetch: "കൊണ്ടുവരിക",
+      hint_fetch: "ഒഴിഞ്ഞ പേര്, സ്ഥാനം, സ്ഥലം എന്നിവ വിക്കിഡാറ്റയിൽ നിന്ന് പൂരിപ്പിക്കും.",
+      err_qid: "QID, Q എന്ന അക്ഷരവും തുടർന്ന് അക്കങ്ങളും ആണ്.",
+      label_lat: "അക്ഷാംശം",
+      err_lat: "-90 നും 90 നും ഇടയിലുള്ള സംഖ്യ നൽകുക.",
+      label_lon: "രേഖാംശം",
+      err_lon: "-180 നും 180 നും ഇടയിലുള്ള സംഖ്യ നൽകുക.",
+      use_location: "എൻ്റെ സ്ഥാനം ഉപയോഗിക്കുക",
+      locating: "സ്ഥാനം കണ്ടെത്തുന്നു…",
+      label_place: "സ്ഥലത്തിൻ്റെ പേര്",
+      label_note: "കുറിപ്പ് / ടാഗ്‌ലൈൻ",
+      ph_note: "കാവിനെക്കുറിച്ചോ ഉത്സവത്തെക്കുറിച്ചോ ഒരു ചെറു വാചകം",
+      note_hint: "അക്ഷരങ്ങൾ. ഇംഗ്ലീഷിലോ മലയാളത്തിലോ.",
+      legend_dates: "കലണ്ടറിലെ തീയതികൾ",
+      err_dates: "കുറഞ്ഞത് ഒരു തീയതി ചേർക്കുക.",
+      add_date: "+ മറ്റൊരു തീയതി ചേർക്കുക",
+      label_date: "തീയതി",
+      remove_date: "തീയതി നീക്കുക",
+      label_time: "സമയം",
+      label_theyyam: "തെയ്യത്തിൻ്റെ പേര്",
+      label_ritual: "ചടങ്ങ്",
+      ph_ritual: "തിരഞ്ഞെടുക്കുക / എഴുതുക",
+      remove: "നീക്കുക",
+      remove_entry: "ഈ വരി നീക്കുക",
+      add_entry: "+ ചടങ്ങ് ചേർക്കുക",
+      send: "പദ്ധതി ടീമിന് അയയ്ക്കുക",
+      preview: "JSON കാണുക",
+      clear: "ഫോം മായ്ക്കുക",
+      confirm_clear: "എല്ലാ വിവരങ്ങളും മായ്ക്കണോ?",
+      dl_json: "JSON ഡൗൺലോഡ് ചെയ്യുക",
+      dl_img: "പേര് മാറ്റിയ ചിത്രം ഡൗൺലോഡ് ചെയ്യുക",
+      share: "ഇമെയിൽ ആപ്പ് വഴി പങ്കിടുക",
+      st_missing: "ചില നിർബന്ധിത വിവരങ്ങൾ വിട്ടുപോയി അല്ലെങ്കിൽ തെറ്റാണ്. ചുവപ്പ് അടയാളമുള്ളവ പരിശോധിക്കുക.",
+      st_sending: "അയയ്ക്കുന്നു…",
+      st_sent_both: "അയച്ചു. JSON ഫയലും ചിത്രവും ചേർത്തിട്ടുണ്ട്.",
+      st_sent_json: "അയച്ചു. JSON ഇമെയിലിൽ ഉൾപ്പെടുത്തി; ചിത്രം താഴെയുള്ള ബട്ടണുകൾ ഉപയോഗിച്ച് ചേർക്കുക.",
+      st_no_geo: "ഈ ബ്രൗസറിൽ സ്ഥാനം ലഭ്യമല്ല.",
+      st_geo_denied: "സ്ഥാന അനുമതി നിഷേധിച്ചു. അക്ഷാംശവും രേഖാംശവും നേരിട്ട് നൽകുക.",
+      st_fetched: "{q} ൽ നിന്ന് ഒഴിഞ്ഞ വിവരങ്ങൾ പൂരിപ്പിച്ചു.",
+      st_fetch_fail: "{q} ലഭിച്ചില്ല: {e}",
+      st_choose_img: "ആദ്യം ചിത്രം തിരഞ്ഞെടുത്ത് ഫയലിൻ്റെ പേര് നൽകുക.",
+      tool_summary: "പരിപാലകർക്ക്: വെബ്സൈറ്റ് ഡാറ്റ ഫയൽ തയ്യാറാക്കുക",
+      tool_hint: "ഇമെയിലിൽ ലഭിച്ച JSON ഫയലുകൾ തിരഞ്ഞെടുക്കുക (ഇപ്പോഴത്തെ <code>theyyam.geojson</code> കൂടി ചേർക്കാം). വെബ്സൈറ്റിൻ്റെ <code>data/</code> ഫോൾഡറിലേക്കുള്ള <code>theyyam.geojson</code> തയ്യാറാകും. ചിത്രങ്ങൾ <code>images/</code> ഫോൾഡറിൽ ഇടുക. ഒരേ കാവിൻ്റെ വിവരങ്ങൾ ഒന്നിച്ചു ചേർക്കും.",
+      tool_btn: "theyyam.geojson തയ്യാറാക്കുക",
+      merge_none: "ആദ്യം JSON ഫയലുകൾ തിരഞ്ഞെടുക്കുക.",
+      merge_built: "{r} രേഖകളിൽ നിന്ന് {k} കാവുകളുമായി theyyam.geojson തയ്യാറാക്കി.",
+      merge_noloc: " {n} കാവുകൾക്ക് സ്ഥാനം ഇല്ലാത്തതിനാൽ ഭൂപടത്തിൽ കാണില്ല.",
+      merge_skipped: " ഒഴിവാക്കിയവ: {f}.",
+      footer_submit: "വിവരങ്ങൾ <a href=\"mailto:manoj@sahya.org.in\">manoj@sahya.org.in</a> എന്ന വിലാസത്തിൽ പദ്ധതി ടീമിന് ലഭിക്കും"
+    }
+  };
+
+  function initialLang() {
+    const q = new URLSearchParams(location.search).get("lang");
+    if (q === "en" || q === "ml") return q;
+    try { const s = localStorage.getItem(STORE_KEY); if (s === "en" || s === "ml") return s; } catch (e) {}
+    const nav = (navigator.languages || [navigator.language || ""]).join(",").toLowerCase();
+    if (/(^|,)ml/.test(nav)) return "ml";
+    return DEFAULT_LANG;
+  }
+  let lang = initialLang();
+
+  function t(key, vars) {
+    let s = (STR[lang] && STR[lang][key]) ?? STR.en[key] ?? key;
+    if (vars) s = s.replace(/\{(\w+)\}/g, (m, k) => (vars[k] ?? m));
+    return s;
+  }
+
+  function apply(root) {
+    root = root || document;
+    root.querySelectorAll("[data-i18n]").forEach(el => { el.textContent = t(el.dataset.i18n); });
+    root.querySelectorAll("[data-i18n-html]").forEach(el => { el.innerHTML = t(el.dataset.i18nHtml); });
+    root.querySelectorAll("[data-i18n-ph]").forEach(el => { el.placeholder = t(el.dataset.i18nPh); });
+    root.querySelectorAll("[data-i18n-aria]").forEach(el => { el.setAttribute("aria-label", t(el.dataset.i18nAria)); });
+    if (root === document) {
+      document.documentElement.lang = lang;
+      const tk = document.body.dataset.titleKey; if (tk) document.title = t(tk);
+      document.querySelectorAll("[data-setlang]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.setlang === lang)));
+    }
+  }
+
+  function setLang(l) {
+    if (l !== "en" && l !== "ml") return;
+    lang = l;
+    try { localStorage.setItem(STORE_KEY, l); } catch (e) {}
+    apply(document);
+    document.dispatchEvent(new CustomEvent("langchange", { detail: { lang } }));
+  }
+
+  /* ---------- formatting helpers ---------- */
+  const locale = () => (lang === "ml" ? "ml-IN" : "en-IN");
+  function parseISO(s) { const [y, m, d] = s.split("-").map(Number); return new Date(y, m - 1, d); }
+  function fmtDate(s) {
+    return parseISO(s).toLocaleDateString(locale(), { weekday: "short", day: "numeric", month: "long", year: "numeric" });
+  }
+  function fmtTime(t) {
+    if (!t) return "—";
+    const [h, m] = t.split(":").map(Number);
+    if (lang === "ml") {
+      /* the way Theyyam notices write time: പുലർച്ചെ 4:00, രാത്രി 9:00 */
+      const part = h < 3 ? "രാത്രി" : h < 6 ? "പുലർച്ചെ" : h < 12 ? "രാവിലെ" : h < 15 ? "ഉച്ചയ്ക്ക്" : h < 19 ? "വൈകുന്നേരം" : "രാത്രി";
+      return `${part} ${(h % 12) || 12}:${String(m).padStart(2, "0")}`;
+    }
+    return new Date(2000, 0, 1, h, m).toLocaleTimeString(locale(), { hour: "numeric", minute: "2-digit" });
+  }
+  function monthYear(y, m) { return new Date(y, m, 1).toLocaleDateString(locale(), { month: "long", year: "numeric" }); }
+  function weekdays() {
+    return [...Array(7)].map((_, i) => new Date(2023, 0, 1 + i) /* 1 Jan 2023 is a Sunday */.toLocaleDateString(locale(), { weekday: "short" }));
+  }
+  /* "Thottam (തോറ്റം)" → "Thottam" in English, "തോറ്റം" in Malayalam */
+  function ritual(r) {
+    if (!r) return "";
+    const m = String(r).match(/^(.*?)\s*\(([^)]*)\)\s*$/);
+    if (!m) return r;
+    return lang === "ml" ? m[2] : m[1];
+  }
+  function plural(n, one, many) { return n === 1 ? t(one) : t(many); }
+
+  document.addEventListener("click", e => {
+    const b = e.target.closest("[data-setlang]");
+    if (b) { e.preventDefault(); setLang(b.dataset.setlang); }
+  });
+  document.addEventListener("DOMContentLoaded", () => apply(document));
+
+  window.I18N = { t, apply, setLang, get lang() { return lang; }, locale, fmtDate, fmtTime, monthYear, weekdays, ritual, plural };
+})();
+
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+/* ============================================================
+   DATA SOURCE – the GeoJSON built from form submissions.
+   Each Feature: geometry Point [lon, lat] (or null) and properties
+   { id, name_en, name_ml, other_names[], wikidata, place, note,
+     image (file name in images/ – the event notice/poster or photo),
+     calendar:[{date:"YYYY-MM-DD", entries:[{time,theyyam,ritual_type,wikidata}]}] }
+   ============================================================ */
+const DATA_URL = "data/theyyam.geojson";
+/* Event notices / posters and photos, named exactly as properties.image */
+const IMAGE_DIR = "images/";
+
+const { t } = I18N;
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+function iso(d){ return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`; }
+const todayISO = iso(new Date());
+const fmtDate = s => I18N.fmtDate(s), fmtTime = s => I18N.fmtTime(s);
+/* the kavu name in the chosen language first, the other one second */
+const nm1 = k => I18N.lang === "ml" ? (k.name_ml || k.name_en) : (k.name_en || k.name_ml);
+const nm2 = k => I18N.lang === "ml" ? (k.name_ml ? k.name_en : "") : (k.name_en ? k.name_ml : "");
+
+let KAVUS = [], BY_DATE = new Map(), RITUALS = [], MONTHS_USED = [];
+let map, markers = {};
+let view = new Date(); view.setDate(1);
+let selected = null, openId = null;
+
+I18N.apply();
+
+/* ---------- load ---------- */
+async function load(){
+  let gj;
+  try{
+    const r = await fetch(DATA_URL, {cache:"no-cache"});
+    if (!r.ok) throw new Error(r.status);
+    gj = await r.json();
+  }catch(e){
+    $("results").innerHTML = `<div class="empty">${esc(t("load_error"))}</div>`;
+    return;
+  }
+  KAVUS = (gj.features || []).map((f,i) => {
+    const p = f.properties || {};
+    const c = f.geometry && f.geometry.type === "Point" ? f.geometry.coordinates : null;
+    const poster = p.image ? (/^https?:/.test(p.image) ? p.image : IMAGE_DIR + encodeURIComponent(p.image)) : null;
+    return { ...p, poster, id: p.id || `kavu-${i}`, lat: c ? c[1] : null, lon: c ? c[0] : null,
+             calendar: (p.calendar || []).filter(d => d.date).sort((a,b)=>a.date.localeCompare(b.date)) };
+  });
+  if (KAVUS.some(k => k.sample)) $("sampleNote").style.display = "block";
+
+  BY_DATE.clear();
+  const rit = new Set(), mon = new Set();
+  KAVUS.forEach(k => k.calendar.forEach(d => {
+    mon.add(d.date.slice(0,7));
+    (d.entries||[]).forEach(e => e.ritual_type && rit.add(e.ritual_type));
+    if (!BY_DATE.has(d.date)) BY_DATE.set(d.date, []);
+    BY_DATE.get(d.date).push({kavu:k, entries:sortEntries(d.entries)});
+  }));
+  RITUALS = [...rit].sort(); MONTHS_USED = [...mon].sort();
+
+  const next = [...BY_DATE.keys()].sort().find(d => d >= todayISO);
+  if (next){ const [y,m] = next.split("-").map(Number); view = new Date(y, m-1, 1); }
+  renderAll();
+  initMap();
+  fetchWikidata();
+  handleHash();
+}
+const sortEntries = es => (es||[]).slice().sort((a,b)=>(a.time||"").localeCompare(b.time||""));
+
+function renderAll(){
+  buildFilters(); renderStats(); search(); renderCal(); renderDayList(selected);
+}
+document.addEventListener("langchange", () => {
+  renderAll();
+  if (map) map.closePopup();
+  if (modal.open && openId) openKavu(openId, true);
+});
+
+/* ---------- stats & filters ---------- */
+function renderStats(){
+  const theyyams = new Set();
+  KAVUS.forEach(k=>k.calendar.forEach(d=>(d.entries||[]).forEach(e=>e.theyyam&&theyyams.add(e.theyyam.toLowerCase()))));
+  const upcoming = [...BY_DATE.keys()].filter(d=>d>=todayISO).length;
+  const s = (n, one, many) => `<span><b>${n}</b> ${esc(I18N.plural(n, one, many))}</span>`;
+  $("stats").innerHTML = s(KAVUS.length,"kavu_one","kavu_many") + s(theyyams.size,"theyyam_one","theyyam_many") +
+    s(BY_DATE.size,"date_one","date_many") + `<span><b>${upcoming}</b> ${esc(t("upcoming"))}</span>`;
+}
+function buildFilters(){
+  const r = $("fRitual").value, m = $("fMonth").value;
+  $("fRitual").innerHTML = `<option value="">${esc(t("all_rituals"))}</option>` +
+    RITUALS.map(x => `<option value="${esc(x)}">${esc(I18N.ritual(x))}</option>`).join("");
+  $("fMonth").innerHTML = `<option value="">${esc(t("all_months"))}</option>` +
+    MONTHS_USED.map(x => { const [y,mm] = x.split("-").map(Number); return `<option value="${x}">${esc(I18N.monthYear(y,mm-1))}</option>`; }).join("");
+  $("fRitual").value = r; $("fMonth").value = m;
+}
+
+/* ---------- search ---------- */
+function haystack(k){
+  const parts = [k.name_en,k.name_ml,k.place,k.note,...(k.other_names||[])];
+  k.calendar.forEach(d=>(d.entries||[]).forEach(e=>parts.push(e.theyyam,e.ritual_type)));
+  return parts.filter(Boolean).join(" ").toLowerCase();
+}
+function hl(text, q){
+  text = String(text ?? "");
+  if (!q) return esc(text);
+  const i = text.toLowerCase().indexOf(q);
+  if (i < 0) return esc(text);
+  return esc(text.slice(0,i)) + "<mark>" + esc(text.slice(i,i+q.length)) + "</mark>" + esc(text.slice(i+q.length));
+}
+function search(){
+  const q = $("q").value.trim().toLowerCase(), r = $("fRitual").value, m = $("fMonth").value;
+  const list = KAVUS.filter(k => {
+    if (q && !haystack(k).includes(q)) return false;
+    if (r && !k.calendar.some(d=>(d.entries||[]).some(e=>e.ritual_type===r))) return false;
+    if (m && !k.calendar.some(d=>d.date.startsWith(m))) return false;
+    return true;
+  });
+  if (!list.length){
+    if (!KAVUS.length) return;
+    $("results").innerHTML = `<div class="empty">${q ? t("no_match",{q:esc(q)}) : esc(t("no_match_filters"))}</div>`;
+    return;
+  }
+  $("results").innerHTML = list.map(k => {
+    const names = new Set(); k.calendar.forEach(d=>(d.entries||[]).forEach(e=>e.theyyam&&names.add(e.theyyam)));
+    const dates = k.calendar.filter(d => !m || d.date.startsWith(m));
+    return `<article class="card">
+      ${k.poster ? `<button class="thumb" data-open="${esc(k.id)}" aria-label="${esc(t("view_poster",{name:nm1(k)}))}"><img src="${k.poster}" alt="" loading="lazy" onerror="this.parentNode.remove()"></button>` : ""}
+      <h3>${hl(nm1(k),q)}</h3>
+      ${nm2(k) ? `<div class="ml">${hl(nm2(k),q)}</div>` : ""}
+      ${k.place ? `<div class="place">📍 ${hl(k.place,q)}</div>` : ""}
+      ${k.note ? `<p class="note">${hl(k.note,q)}</p>` : ""}
+      ${names.size ? `<div class="chips">${[...names].map(n=>`<span class="chip">${hl(n,q)}</span>`).join("")}</div>` : ""}
+      <div class="chips">${dates.map(d=>`<button class="chip date" data-date="${d.date}">${esc(fmtDate(d.date))}</button>`).join("")}</div>
+      <div class="card-actions">
+        <button class="btn solid" data-open="${esc(k.id)}">${esc(t("details"))}</button>
+        ${k.lat!=null ? `<button class="btn" data-fly="${esc(k.id)}">${esc(t("show_on_map"))}</button>` : ""}
+      </div>
+    </article>`;
+  }).join("");
+}
+["q","fRitual","fMonth"].forEach(id => $(id).addEventListener("input", search));
+$("heroForm").addEventListener("submit", e => { e.preventDefault(); $("q").value = $("heroQ").value; search(); location.hash = "search"; });
+
+document.addEventListener("click", e => {
+  const d = e.target.closest("[data-date]"); if (d){ e.preventDefault(); goToDate(d.dataset.date); return; }
+  const o = e.target.closest("[data-open]"); if (o){ e.preventDefault(); openKavu(o.dataset.open); return; }
+  const f = e.target.closest("[data-fly]"); if (f){ e.preventDefault(); flyTo(f.dataset.fly); return; }
+}, true); // capture phase so links inside Leaflet popups work too
+
+/* ---------- calendar ---------- */
+function renderCal(){
+  const y = view.getFullYear(), m = view.getMonth();
+  $("calTitle").textContent = I18N.monthYear(y, m);
+  $("dow").innerHTML = I18N.weekdays().map(w => `<div>${esc(w)}</div>`).join("");
+  const start = new Date(y, m, 1 - new Date(y,m,1).getDay());
+  let html = "";
+  for (let i=0;i<42;i++){
+    const d = new Date(start); d.setDate(start.getDate()+i);
+    const s = iso(d), n = (BY_DATE.get(s)||[]).length;
+    const cls = ["day", d.getMonth()!==m?"out":"", n?"has":"", s===todayISO?"is-today":"", s===selected?"sel":""].join(" ");
+    const aria = n ? t("day_aria",{date:fmtDate(s), n}) : fmtDate(s);
+    html += `<button class="${cls}" data-day="${s}" ${n?`data-n="${n}"`:""} aria-label="${esc(aria)}">${d.getDate()}</button>`;
+  }
+  $("days").innerHTML = html;
+}
+$("days").addEventListener("click", e => { const b = e.target.closest("[data-day]"); if (b){ selected = b.dataset.day; renderCal(); renderDayList(selected); history.replaceState(null,"",`#date=${selected}`); }});
+$("prevM").onclick = () => { view.setMonth(view.getMonth()-1); renderCal(); };
+$("nextM").onclick = () => { view.setMonth(view.getMonth()+1); renderCal(); };
+$("todayBtn").onclick = () => { view = new Date(); view.setDate(1); selected = todayISO; renderCal(); renderDayList(selected); };
+
+function entriesHTML(entries){
+  return `<ul>${entries.length ? entries.map(e=>`<li><span class="t">${esc(fmtTime(e.time))}</span>
+      <span>${e.wikidata?`<a href="https://www.wikidata.org/wiki/${esc(e.wikidata)}" target="_blank" rel="noopener">${esc(e.theyyam||e.wikidata)}</a>`:esc(e.theyyam||t("theyyam_one"))}
+      ${e.ritual_type?`<div class="r">${esc(I18N.ritual(e.ritual_type))}</div>`:""}</span></li>`).join("")
+      : `<li><span class="t">—</span><span class="r">${esc(t("no_details"))}</span></li>`}</ul>`;
+}
+function groupHTML(g){
+  const k = g.kavu;
+  return `<div class="grp">
+    <div class="grp-h">${k.poster?`<img class="gthumb" src="${k.poster}" alt="" loading="lazy" onerror="this.remove()">`:""}
+      <div style="flex:1"><b>${esc(nm1(k))}</b>${nm2(k)?`<b style="font-weight:500">${esc(nm2(k))}</b>`:""}${k.place?`<span>📍 ${esc(k.place)}</span>`:""}</div>
+      <button class="btn" data-open="${esc(k.id)}">${esc(t("details"))}</button></div>
+    ${entriesHTML(g.entries)}
+  </div>`;
+}
+function renderDayList(date){
+  if (date){
+    const groups = BY_DATE.get(date) || [];
+    $("dayList").innerHTML = `<h3>${esc(fmtDate(date))}</h3>` + (groups.length ? groups.map(g => groupHTML(g)).join("")
+      : `<div class="empty">${esc(t("no_theyyam_date"))}</div>`);
+    return;
+  }
+  const upcoming = [...BY_DATE.keys()].filter(d=>d>=todayISO).sort().slice(0,6);
+  $("dayList").innerHTML = `<h3>${esc(t("coming_up"))}</h3>` +
+    (upcoming.length ? upcoming.map(d=>`<div class="upnext-date">${esc(fmtDate(d))}${d===todayISO?esc(t("today_suffix")):""}</div>${BY_DATE.get(d).map(g => groupHTML(g)).join("")}`).join("")
+      : `<div class="empty">${esc(t("no_upcoming"))}</div>`);
+}
+function goToDate(date){
+  const [y,m] = date.split("-").map(Number);
+  view = new Date(y,m-1,1); selected = date; renderCal(); renderDayList(date);
+  if (modal.open) modal.close();
+  $("calendar").scrollIntoView({behavior:"smooth"});
+  history.replaceState(null,"",`#date=${date}`);
+}
+
+/* ---------- map ---------- */
+function popupHTML(k){
+  const next = k.calendar.find(d=>d.date>=todayISO) || k.calendar[k.calendar.length-1];
+  const pic = k.poster || k._img;
+  const note = k.note ? (k.note.length>110 ? k.note.slice(0,107)+"…" : k.note) : "";
+  return `<div class="pop">${pic?`<img src="${pic}" alt="" loading="lazy" onerror="this.remove()">`:""}
+    <h4>${esc(nm1(k))}</h4>${nm2(k)?`<div class="ml">${esc(nm2(k))}</div>`:""}
+    ${note?`<div class="d" style="font-style:italic">${esc(note)}</div>`:""}
+    ${next?`<div class="d">${esc(next.date>=todayISO?t("next"):t("last"))}: <a href="#" data-date="${next.date}">${esc(fmtDate(next.date))}</a></div>`:""}
+    <div class="card-actions"><button class="btn solid" data-open="${esc(k.id)}">${esc(t("details"))}</button></div></div>`;
+}
+function initMap(){
+  const pinIcon = L.divIcon({className:"", html:'<div class="pin"></div>', iconSize:[26,26], iconAnchor:[13,30], popupAnchor:[0,-28]});
+  map = L.map("map", {scrollWheelZoom:false}).setView([12.05, 75.3], 9);
+  L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {maxZoom:19,
+    attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'}).addTo(map);
+  const pts = [];
+  KAVUS.filter(k=>k.lat!=null).forEach(k => {
+    markers[k.id] = L.marker([k.lat,k.lon], {icon:pinIcon, title:k.name_en}).addTo(map).bindPopup(()=>popupHTML(k));
+    pts.push([k.lat,k.lon]);
+  });
+  if (pts.length) map.fitBounds(pts, {padding:[40,40], maxZoom:12});
+  map.on("focus", () => map.scrollWheelZoom.enable());
+}
+function flyTo(id){
+  const k = KAVUS.find(x=>x.id===id); if (!k || k.lat==null) return;
+  if (modal.open) modal.close();
+  $("map-sec").scrollIntoView({behavior:"smooth"});
+  setTimeout(()=>{ map.flyTo([k.lat,k.lon], 14); markers[id].openPopup(); }, 350);
+}
+
+/* ---------- Wikidata enrichment (images & links) ---------- */
+function commonsThumb(file, w=640){ return `https://commons.wikimedia.org/wiki/Special:FilePath/${encodeURIComponent(file.replace(/ /g,"_"))}?width=${w}`; }
+async function fetchWikidata(){
+  const ids = [...new Set(KAVUS.map(k=>k.wikidata).filter(q=>/^Q\d+$/.test(q||"")))];
+  for (let i=0;i<ids.length;i+=50){
+    try{
+      const url = `https://www.wikidata.org/w/api.php?action=wbgetentities&ids=${ids.slice(i,i+50).join("|")}&props=claims|sitelinks|descriptions&languages=en|ml&format=json&origin=*`;
+      const ents = (await (await fetch(url)).json()).entities || {};
+      KAVUS.forEach(k => {
+        const e = ents[k.wikidata]; if (!e) return;
+        const p18 = e.claims?.P18?.[0]?.mainsnak?.datavalue?.value;
+        if (p18){ k._img = commonsThumb(p18); k._imgFile = p18; }
+        k._ml = e.sitelinks?.mlwiki?.title; k._en = e.sitelinks?.enwiki?.title;
+        k._desc = { en: e.descriptions?.en?.value, ml: e.descriptions?.ml?.value };
+      });
+    }catch(err){ console.warn("Wikidata fetch failed", err); }
+  }
+}
+
+/* ---------- detail modal ---------- */
+const modal = $("modal");
+function openKavu(id, refresh){
+  const k = KAVUS.find(x=>x.id===id); if (!k) return;
+  openId = id;
+  const links = [];
+  if (k.wikidata) links.push(`<a href="https://www.wikidata.org/wiki/${esc(k.wikidata)}" target="_blank" rel="noopener">Wikidata ${esc(k.wikidata)}</a>`);
+  if (k._ml) links.push(`<a href="https://ml.wikipedia.org/wiki/${encodeURIComponent(k._ml)}" target="_blank" rel="noopener">${esc(t("ml_wiki"))}</a>`);
+  if (k._en) links.push(`<a href="https://en.wikipedia.org/wiki/${encodeURIComponent(k._en)}" target="_blank" rel="noopener">${esc(t("en_wiki"))}</a>`);
+  if (k.lat!=null){
+    links.push(`<a href="https://www.openstreetmap.org/?mlat=${k.lat}&mlon=${k.lon}#map=16/${k.lat}/${k.lon}" target="_blank" rel="noopener">${esc(t("osm"))}</a>`);
+    links.push(`<a href="https://www.google.com/maps/dir/?api=1&destination=${k.lat},${k.lon}" target="_blank" rel="noopener">${esc(t("directions"))}</a>`);
+    links.push(`<a href="#" data-fly="${esc(k.id)}">${esc(t("show_on_map"))}</a>`);
+  }
+  const desc = k._desc ? (k._desc[I18N.lang] || k._desc.en || k._desc.ml) : "";
+  $("mContent").innerHTML = `
+    ${k.poster ? `<a href="${k.poster}" target="_blank" rel="noopener" class="poster-link"><img class="m-poster" src="${k.poster}" alt="${esc(t("poster_label"))} – ${esc(nm1(k))}" onerror="this.parentNode.remove()"></a>
+      <div class="credit">${esc(t("poster_label"))} · <a href="${k.poster}" target="_blank" rel="noopener">${esc(t("open_full"))}</a></div>` : ""}
+    ${k._img && !k.poster ? `<img class="m-img" src="${k._img}" alt="${esc(nm1(k))}"><div class="credit">${t("image_credit",{url:"https://commons.wikimedia.org/wiki/File:"+encodeURIComponent(k._imgFile)})}</div>` : ""}
+    <div class="m-body">
+      <h3>${esc(nm1(k))}</h3>
+      ${nm2(k) ? `<div style="font-size:1.15rem;color:var(--muted)">${esc(nm2(k))}</div>` : ""}
+      ${k.other_names?.length ? `<div style="font-size:.9rem;margin-top:4px">${esc(t("also_known"))}: ${k.other_names.map(esc).join(", ")}</div>` : ""}
+      ${k.place ? `<div style="margin-top:6px">📍 ${esc(k.place)}</div>` : ""}
+      ${k.note ? `<p class="m-note">${esc(k.note)}</p>` : ""}
+      ${desc ? `<p style="color:var(--muted);margin:8px 0 0">${esc(desc)}</p>` : ""}
+      <div class="links">${links.join("")}</div>
+      ${k.calendar.map(d=>`<div class="upnext-date"><a href="#" data-date="${d.date}">${esc(fmtDate(d.date))}</a></div>
+        <div class="grp">${entriesHTML(sortEntries(d.entries))}</div>`).join("")}
+    </div>`;
+  if (!refresh) modal.showModal();
+  history.replaceState(null,"",`#kavu=${encodeURIComponent(k.id)}`);
+}
+modal.addEventListener("click", e => { if (e.target === modal) modal.close(); });
+modal.addEventListener("close", () => { openId = null; if (location.hash.startsWith("#kavu=")) history.replaceState(null,"",location.pathname + location.search); });
+
+/* ---------- deep links: #date=YYYY-MM-DD, #kavu=id ---------- */
+function handleHash(){
+  const h = decodeURIComponent(location.hash.slice(1));
+  if (h.startsWith("date=")) goToDate(h.slice(5));
+  else if (h.startsWith("kavu=")) openKavu(h.slice(5));
+}
+
+/* ---------- nav highlight ---------- */
+const navLinks = document.querySelectorAll("nav a[data-sec]");
+const navIO = new IntersectionObserver(es => es.forEach(en => {
+  if (en.isIntersecting) navLinks.forEach(a => a.classList.toggle("active", a.dataset.sec === en.target.id));
+}), {rootMargin:"-40% 0px -55% 0px"});
+["search","calendar","map-sec"].forEach(id => navIO.observe(document.getElementById(id)));
+
+load();
+</script>
+</body>
+</html>
