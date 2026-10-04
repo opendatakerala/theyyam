@@ -251,7 +251,7 @@ html[lang="ml"] h1{font-stretch:105%}
 </main>
 
 <footer>
-  <span data-i18n="site_title"></span> · <span data-i18n="org"></span><br>
+  <span data-i18n="site_title"></span> · <span data-i18n="footer_org"></span><br>
   <span data-i18n-html="footer_data"></span>
 </footer>
 
@@ -281,6 +281,7 @@ html[lang="ml"] h1{font-stretch:105%}
       site_title: "Theyyam Calendar Project",
       tagline: "An open data initiative to map Theyyam, the socio-religious ritual and integral cultural symbol of North Malabar.",
       org: "Sahya Digital Conservation Foundation",
+      footer_org: "OpenData Initiative from Sahya Digital Conservation Foundation",
       lang_label: "Language",
 
       /* ---------- index: header & nav ---------- */
@@ -421,6 +422,7 @@ html[lang="ml"] h1{font-stretch:105%}
       site_title: "തെയ്യം കലണ്ടർ പദ്ധതി",
       tagline: "വടക്കേ മലബാറിൻ്റെ സാമൂഹിക അനുഷ്ഠാനവും അവിഭാജ്യ സാംസ്കാരിക പ്രതീകവുമായ തെയ്യത്തെ മാപ്പ് ചെയ്യാനുള്ള ഒരു ഓപ്പൺ ഡാറ്റ സംരംഭം.",
       org: "സഹ്യ ഡിജിറ്റൽ കൺസർവേഷൻ ഫൗണ്ടേഷൻ",
+      footer_org: "സഹ്യ ഡിജിറ്റൽ കൺസർവേഷൻ ഫൗണ്ടേഷൻ്റെ ഓപ്പൺ ഡാറ്റ സംരംഭം",
       lang_label: "ഭാഷ",
 
       page_title_index: "തെയ്യം കലണ്ടർ പദ്ധതി",
@@ -690,7 +692,7 @@ async function load(){
   const next = [...BY_DATE.keys()].sort().find(d => d >= todayISO);
   if (next){ const [y,m] = next.split("-").map(Number); view = new Date(y, m-1, 1); }
   renderAll();
-  initMap();
+  try { initMap(); } catch (e) { console.warn("Map could not load", e); $("map").style.display = "none"; }
   fetchWikidata();
   handleHash();
 }
