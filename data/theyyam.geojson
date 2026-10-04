@@ -1,8 +1,95 @@
 {
   "type": "FeatureCollection",
   "name": "Theyyam Calendar Project",
-  "generated_at": "2026-10-04T00:00:00Z",
+  "generated_at": "2026-10-04T14:56:07.529Z",
   "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          75.10276605045524,
+          12.3067546366686
+        ]
+      },
+      "properties": {
+        "name_en": "Theruvath Sree Arayil Bhagavathy, Kanhangad",
+        "name_ml": "തെരുവത്ത് ശ്രീ അറയിൽ ഭഗവതി, കാഞ്ഞങ്ങാട്",
+        "other_names": [
+          "Kanhangad Theruvath Sree Arayil Bhagavathy Devalayam"
+        ],
+        "wikidata": "Q141639345",
+        "coordinates": {
+          "lat": 12.3067546366686,
+          "lon": 75.10276605045524
+        },
+        "place": "Kanhangad Municipality",
+        "note": null,
+        "image": "Theyyam20260002.jpeg",
+        "calendar": [
+          {
+            "date": "2026-11-02",
+            "entries": [
+              {
+                "time": "20:00",
+                "theyyam": "ചൂളിയാർ ഭഗവതി",
+                "ritual_type": "Thottam (തോറ്റം)",
+                "wikidata": null
+              },
+              {
+                "time": "20:00",
+                "theyyam": "വിഷ്ണുമൂർത്തി",
+                "ritual_type": "Thottam (തോറ്റം)",
+                "wikidata": "Q13114745"
+              },
+              {
+                "time": "20:00",
+                "theyyam": "മൂവാളംകുഴി ചാമുണ്ഡി",
+                "ritual_type": "Thottam (തോറ്റം)",
+                "wikidata": null
+              }
+            ]
+          },
+          {
+            "date": "2026-11-03",
+            "entries": [
+              {
+                "time": "05:00",
+                "theyyam": "പടവീരൻ തെയ്യം",
+                "ritual_type": "Theyyam / Purappad (പുറപ്പാട്)",
+                "wikidata": null
+              },
+              {
+                "time": "09:00",
+                "theyyam": "വിഷ്ണുമൂർത്തി",
+                "ritual_type": "Theyyam / Purappad (പുറപ്പാട്)",
+                "wikidata": "Q13114745"
+              },
+              {
+                "time": "14:00",
+                "theyyam": "ചൂളിയാർ ഭഗവതി",
+                "ritual_type": "Theyyam / Purappad (പുറപ്പാട്)",
+                "wikidata": null
+              },
+              {
+                "time": "16:00",
+                "theyyam": "മൂവാളംകുഴി ചാമുണ്ഡി",
+                "ritual_type": "Theyyam / Purappad (പുറപ്പാട്)",
+                "wikidata": null
+              },
+              {
+                "time": "18:00",
+                "theyyam": "ഗുളികൻ തെയ്യം",
+                "ritual_type": null,
+                "wikidata": "Q13564494"
+              }
+            ]
+          }
+        ],
+        "submitted_at": "2026-10-04T14:53:50.165Z",
+        "id": "Q141639345"
+      }
+    },
     {
       "type": "Feature",
       "geometry": {
@@ -21,34 +108,37 @@
           "ശ്രീ ആലയിൽ ഭഗവതി ക്ഷേത്രം"
         ],
         "wikidata": "Q124387570",
+        "coordinates": {
+          "lat": 12.270827828822869,
+          "lon": 75.1853930595907
+        },
         "place": "Kayyur",
         "note": "ഒറ്റക്കോലമഹോത്സവം",
-        "id": "Q124387570",
         "image": "Theyyam20260001.jpeg",
         "calendar": [
           {
             "date": "2026-11-11",
             "entries": [
               {
-                "time": "21:00",
+                "time": "09:00",
                 "theyyam": "മേച്ചേരി ചാമുണ്ഡി",
                 "ritual_type": "Thottam (തോറ്റം)",
                 "wikidata": null
               },
               {
-                "time": "21:00",
+                "time": "09:00",
                 "theyyam": "രക്ത ചാമുണ്ഡി",
                 "ritual_type": "Thottam (തോറ്റം)",
                 "wikidata": null
               },
               {
-                "time": "21:00",
+                "time": "09:00",
                 "theyyam": "പനിയൻ",
                 "ritual_type": "Thottam (തോറ്റം)",
                 "wikidata": "Q16137219"
               },
               {
-                "time": "21:00",
+                "time": "09:00",
                 "theyyam": "പാടാർ കുളങ്ങര ഭഗവതി",
                 "ritual_type": "Thottam (തോറ്റം)",
                 "wikidata": null
@@ -73,7 +163,8 @@
             ]
           }
         ],
-        "submitted_at": "2026-10-04T12:28:36.762Z"
+        "submitted_at": "2026-10-04T12:28:36.762Z",
+        "id": "Q124387570"
       }
     }
   ]
