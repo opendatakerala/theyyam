@@ -1,0 +1,80 @@
+{
+  "type": "FeatureCollection",
+  "name": "Theyyam Calendar Project",
+  "generated_at": "2026-10-04T00:00:00Z",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          75.1853930595907,
+          12.270827828822869
+        ]
+      },
+      "properties": {
+        "name_en": "Alayil Bhagavathi Temple",
+        "name_ml": "ആലയിൽ ഭഗവതി ക്ഷേത്രം",
+        "other_names": [
+          "Sree Alayil Bhagavathi Temple",
+          "Alayil Bhagavathi Kshetham",
+          "ശ്രീ ആലയിൽ ഭഗവതി ക്ഷേത്രം"
+        ],
+        "wikidata": "Q124387570",
+        "place": "Kayyur",
+        "note": "ഒറ്റക്കോലമഹോത്സവം",
+        "id": "Q124387570",
+        "image": "Theyyam20260001.jpeg",
+        "calendar": [
+          {
+            "date": "2026-11-11",
+            "entries": [
+              {
+                "time": "21:00",
+                "theyyam": "മേച്ചേരി ചാമുണ്ഡി",
+                "ritual_type": "Thottam (തോറ്റം)",
+                "wikidata": null
+              },
+              {
+                "time": "21:00",
+                "theyyam": "രക്ത ചാമുണ്ഡി",
+                "ritual_type": "Thottam (തോറ്റം)",
+                "wikidata": null
+              },
+              {
+                "time": "21:00",
+                "theyyam": "പനിയൻ",
+                "ritual_type": "Thottam (തോറ്റം)",
+                "wikidata": "Q16137219"
+              },
+              {
+                "time": "21:00",
+                "theyyam": "പാടാർ കുളങ്ങര ഭഗവതി",
+                "ritual_type": "Thottam (തോറ്റം)",
+                "wikidata": null
+              }
+            ]
+          },
+          {
+            "date": "2026-11-12",
+            "entries": [
+              {
+                "time": "04:00",
+                "theyyam": "തീചാമുണ്ഡി",
+                "ritual_type": "Theyyam / Purappad (പുറപ്പാട്)",
+                "wikidata": null
+              },
+              {
+                "time": "10:00",
+                "theyyam": "കണ്ടത്തിലമ്മ",
+                "ritual_type": "Theyyam / Purappad (പുറപ്പാട്)",
+                "wikidata": null
+              }
+            ]
+          }
+        ],
+        "submitted_at": "2026-10-04T12:28:36.762Z"
+      }
+    }
+  ]
+}
