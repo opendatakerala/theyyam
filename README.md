@@ -2,17 +2,10 @@
 
 Files
 - index.html – search, calendar and map (reads data/theyyam.geojson)
-- submit.html – form for adding a Theyyam event; emails JSON + renamed photo to manoj@sahya.org.in
-  with the subject "<File Name> - Theyyam Map Project"
+- submit.html – form for adding a Theyyam event;
 - data/theyyam.geojson – the site's data (currently SAMPLE data – replace it)
 - images/ – event notices, posters and photos (file names match the JSON)
 - assets/logo.png, assets/favicon.png – Muchilottu Theyyam logo
-
-Publishing
-1. Upload the whole folder to any static host (GitHub Pages, Netlify, your server).
-   Opening index.html by double-clicking won't load the data; it must be served over http(s).
-2. Email activation: the first entry sent from submit.html triggers a FormSubmit activation
-   email to manoj@sahya.org.in. Click the link once; later entries arrive directly.
 
 Updating the data
 1. Save the JSON files received by email.
