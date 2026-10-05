@@ -132,6 +132,8 @@ mark{background:#FFE08A;color:inherit;padding:0 1px}
 .pop .ml{color:var(--muted)}
 .pop img{width:100%;height:120px;object-fit:cover;border-radius:6px;margin:6px 0;display:block}
 .pop .d{font-size:.85rem;margin-top:6px}
+.nav-btn{display:inline-flex;align-items:center;gap:4px;text-decoration:none;background:var(--manjal);border-color:var(--manjal);color:var(--ink)!important}
+.nav-btn:hover{background:#D49605}
 .pin{background:var(--kumkum);border:3px solid var(--manjal);border-radius:50% 50% 50% 0;transform:rotate(-45deg);
   width:26px;height:26px;box-shadow:0 2px 4px rgba(0,0,0,.35)}
 
@@ -336,6 +338,7 @@ html[lang="ml"] h1{font-stretch:105%}
       en_wiki: "English Wikipedia",
       osm: "OpenStreetMap",
       directions: "Directions",
+      navigate: "Navigate",
       close: "Close",
 
       /* ---------- index: footer & band ---------- */
@@ -471,6 +474,7 @@ html[lang="ml"] h1{font-stretch:105%}
       en_wiki: "ഇംഗ്ലീഷ് വിക്കിപീഡിയ",
       osm: "ഓപ്പൺസ്ട്രീറ്റ്മാപ്പ്",
       directions: "വഴി കാണുക",
+      navigate: "വഴി കാണിക്കുക",
       close: "അടയ്ക്കുക",
 
       band_h: "ഏതെങ്കിലും തെയ്യം വിവരം വിട്ടുപോയിട്ടുണ്ടോ?",
@@ -841,7 +845,10 @@ function popupHTML(k){
     <h4>${esc(nm1(k))}</h4>${nm2(k)?`<div class="ml">${esc(nm2(k))}</div>`:""}
     ${note?`<div class="d" style="font-style:italic">${esc(note)}</div>`:""}
     ${next?`<div class="d">${esc(next.date>=todayISO?t("next"):t("last"))}: <a href="#" data-date="${next.date}">${esc(fmtDate(next.date))}</a></div>`:""}
-    <div class="card-actions"><button class="btn solid" data-open="${esc(k.id)}">${esc(t("details"))}</button></div></div>`;
+    <div class="card-actions">
+      <button class="btn solid" data-open="${esc(k.id)}">${esc(t("details"))}</button>
+      ${k.lat!=null ? `<a class="btn nav-btn" href="https://www.google.com/maps/dir/?api=1&destination=${k.lat},${k.lon}" target="_blank" rel="noopener">➤ ${esc(t("navigate"))}</a>` : ""}
+    </div></div>`;
 }
 function initMap(){
   const pinIcon = L.divIcon({className:"", html:'<div class="pin"></div>', iconSize:[26,26], iconAnchor:[13,30], popupAnchor:[0,-28]});
@@ -850,7 +857,7 @@ function initMap(){
     attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'}).addTo(map);
   const pts = [];
   KAVUS.filter(k=>k.lat!=null).forEach(k => {
-    markers[k.id] = L.marker([k.lat,k.lon], {icon:pinIcon, title:k.name_en}).addTo(map).bindPopup(()=>popupHTML(k));
+    markers[k.id] = L.marker([k.lat,k.lon], {icon:pinIcon, title:k.name_en}).addTo(map).bindPopup(()=>popupHTML(k), {maxWidth:280, autoPanPaddingTopLeft:[10,60], autoPanPaddingBottomRight:[10,10]});
     pts.push([k.lat,k.lon]);
   });
   if (pts.length) map.fitBounds(pts, {padding:[40,40], maxZoom:12});
@@ -860,7 +867,7 @@ function flyTo(id){
   const k = KAVUS.find(x=>x.id===id); if (!k || k.lat==null) return;
   if (modal.open) modal.close();
   $("map-sec").scrollIntoView({behavior:"smooth"});
-  setTimeout(()=>{ map.flyTo([k.lat,k.lon], 14); markers[id].openPopup(); }, 350);
+  setTimeout(()=>{ map.once("moveend", () => markers[id].openPopup()); map.flyTo([k.lat,k.lon], 14, {duration:0.8}); }, 350);
 }
 
 /* ---------- Wikidata enrichment (images & links) ---------- */
